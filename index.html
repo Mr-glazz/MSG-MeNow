@@ -3,180 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syncing Chat Room with Profiles</title>
+    <title>Spinchat Community Platform Blueprint</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        
-        /* Auth Screen overlay */
-        #auth-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:#111214; display:flex; justify-content:center; align-items:center; z-index:100; }
-        .auth-card { background:#ffffff; padding:30px; border-radius:12px; width:100%; max-width:400px; text-align:center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .auth-card h2 { margin-bottom: 20px; color:#333; }
-        .auth-input { width:100%; padding:12px; margin-bottom:15px; border-radius:24px; border:1px solid #ccd0d5; font-size:1rem; outline:none; }
-        .auth-btn { width:100%; padding:12px; background:#0084ff; border:none; color:#fff; font-weight:bold; border-radius:24px; cursor:pointer; font-size:1rem; }
-        .auth-btn:hover { background:#006bc6; }
+        body { background-color: #1e1f22; color: #dbdee1; display: flex; height: 100vh; overflow: hidden; }
 
-        .chat-container { width: 100%; max-width: 600px; height: 80vh; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; overflow: hidden; position: relative; }
-        .chat-header { background: #0084ff; color: white; padding: 15px 20px; font-size: 1.2rem; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; background: #f9f9f9; display: flex; flex-direction: column; gap: 12px; }
-        
-        .message { max-width: 75%; padding: 10px 14px; border-radius: 18px; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; }
-        .message.received { background: #e4e6eb; color: #050505; align-self: flex-start; border-bottom-left-radius: 4px; }
-        .message.sent { background: #0084ff; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
-        
-        .message-user { font-size: 0.75rem; font-weight: bold; margin-bottom: 4px; color: #0084ff; cursor: pointer; }
-        .message-user:hover { text-decoration: underline; }
-        .message.sent .message-user { color: #e0f0ff; text-align: right; cursor: default; pointer-events: none; }
+        /* Left Application Navigation Bar */
+        .app-sidebar { width: 240px; background-color: #2b2d31; display: flex; flex-direction: column; border-right: 1px solid #1f2023; }
+        .sidebar-header { padding: 15px; font-size: 1.1rem; font-weight: bold; background-color: #232428; color: #fff; border-bottom: 1px solid #1f2023; }
+        .nav-list { flex: 1; padding: 10px; list-style: none; overflow-y: auto; }
+        .nav-section-title { font-size: 0.75rem; font-weight: bold; color: #949ba4; text-transform: uppercase; margin: 15px 0 5px 5px; }
+        .nav-item { padding: 10px 12px; border-radius: 6px; cursor: pointer; margin-bottom: 4px; color: #949ba4; font-weight: 500; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s, color 0.2s; }
+        .nav-item:hover { background-color: #35373c; color: #dbdee1; }
+        .nav-item.active { background-color: #404249; color: #fff; }
+        .badge { font-size: 0.75rem; background: #5865f2; color: white; padding: 2px 6px; border-radius: 10px; }
 
-        .chat-input-area { padding: 15px; background: white; border-top: 1px solid #e4e6eb; display: flex; gap: 10px; }
-        .chat-input { flex: 1; padding: 12px 16px; border: 1px solid #ccd0d5; border-radius: 24px; outline: none; font-size: 0.95rem; }
-        .send-btn { background: #0084ff; color: white; border: none; padding: 0 20px; border-radius: 24px; font-weight: bold; cursor: pointer; }
+        /* Main Functional Application Layer */
+        .app-content { flex: 1; display: flex; flex-direction: column; background-color: #313338; position: relative; }
+        .app-header { height: 53px; padding: 0 20px; background-color: #313338; border-bottom: 1px solid #1f2023; display: flex; align-items: center; justify-content: space-between; }
+        .app-title { font-weight: bold; color: #fff; font-size: 1.1rem; }
+        .view-panel { flex: 1; display: none; padding: 20px; overflow-y: auto; }
+        .view-panel.active { display: flex; flex-direction: column; }
 
-        /* Profile Modal Card */
-        #profile-modal { display:none; position: absolute; top:50%; left:50%; transform: translate(-50%, -50%); background:#ffffff; border-radius:12px; width:280px; box-shadow:0 4px 20px rgba(0,0,0,0.2); z-index:50; overflow:hidden; border: 1px solid #e4e6eb; }
-        .profile-banner { height: 50px; background: #0084ff; }
-        .profile-content { padding: 20px; text-align:center; }
-        .profile-username { font-size:1.2rem; font-weight:bold; color:#333; }
-        .profile-status { font-size:0.9rem; color:#65676b; margin: 10px 0 15px 0; font-style: italic; }
-        .close-profile-btn { padding:8px 16px; background:#e4e6eb; color:#050505; border:none; border-radius:18px; cursor:pointer; width:100%; font-weight: bold; }
+        /* Component: Chat View Viewport Configuration */
+        #view-chat { padding: 0; }
+        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; background-color: #313338; }
+        .message-row { display: flex; flex-direction: column; margin-bottom: 4px; }
+        .message-meta { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
+        .user-name { font-weight: 600; font-size: 0.95rem; color: #00b0f4; cursor: pointer; }
+        .user-name:hover { text-decoration: underline; }
+        .message-time { font-size: 0.75rem; color: #949ba4; }
+        .message-text { font-size: 0.95rem; color: #dbdee1; line-height: 1.4; word-break: break-word; }
+        .chat-input-area { padding: 0 20px 20px 20px; background-color: #313338; }
+        .input-wrapper { background-color: #383a40; border-radius: 8px; display: flex; align-items: center; padding: 12px 15px; }
+        .chat-input { flex: 1; background: none; border: none; outline: none; color: #dbdee1; font-size: 0.95rem; }
+
+        /* Component: Forum Boards layout styling */
+        .forum-row { background: #2b2d31; padding: 15px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; border: 1px solid #1f2023; }
+        .forum-row:hover { background: #35373c; }
+        .forum-title { font-weight: bold; color: #fff; margin-bottom: 4px; }
+        .forum-meta { font-size: 0.8rem; color: #949ba4; }
+
+        /* Component: Mini-Games Panel setup grids */
+        .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .game-card { background: #2b2d31; border-radius: 8px; padding: 20px; text-align: center; border: 1px solid #1f2023; }
+        .game-btn { background: #23a55a; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-top: 10px; font-weight: bold; }
+        .game-btn:hover { background: #1a7a42; }
+
+        /* Component: Profile and Blog layout structures */
+        .profile-container { display: flex; gap: 20px; align-items: flex-start; }
+        .profile-card-left { width: 250px; background: #2b2d31; padding: 20px; border-radius: 8px; text-align: center; border: 1px solid #1f2023; }
+        .profile-avatar { width: 100px; height: 100px; background: #5865f2; border-radius: 50%; margin: 0 auto 15px auto; }
+        .blog-stream { flex: 1; background: #2b2d31; padding: 20px; border-radius: 8px; border: 1px solid #1f2023; }
+        .blog-post { background: #313338; padding: 15px; border-radius: 6px; margin-top: 15px; border: 1px solid #1f2023; }
+
+        /* Global Profile Inspection Modal Overlay */
+        #profile-modal { display:none; position: fixed; top:50%; left:50%; transform: translate(-50%, -50%); background:#2b2d31; border: 1px solid #1f2023; border-radius:12px; width:320px; box-shadow:0 4px 20px rgba(0,0,0,0.5); z-index:200; overflow:hidden; }
+        .profile-banner { height: 60px; background: #0084ff; }
+        .profile-modal-content { padding: 20px; text-align:center;}
+        .profile-username { font-size:1.4rem; font-weight:bold; color:#fff; margin-top:10px; }
+        .profile-status { font-size:0.9rem; color:#949ba4; margin: 10px 0 20px 0; font-style: italic; }
+        .close-profile-btn { padding:8px 16px; background:#4e5058; color:#fff; border:none; border-radius:4px; cursor:pointer; width:100%; }
+        .close-profile-btn:hover { background:#6d6f78; }
     </style>
 </head>
 <body>
 
-    <!-- Phase 2 Login Overlay -->
-    <div id="auth-overlay">
-        <div class="auth-card">
-            <h2>Spinchat Profile Set</h2>
-            <input type="text" id="nickname-input" class="auth-input" placeholder="Choose your chat handle..." maxlength="12">
-            <input type="text" id="status-input" class="auth-input" placeholder="Enter your custom motto status..." maxlength="35">
-            <button id="login-btn" class="auth-btn">Enter Chat Room</button>
-        </div>
+    <!-- Sidebar Layout Navigation Links -->
+    <div class="app-sidebar">
+        <div class="sidebar-header">🌐 Spinchat Core</div>
+        <ul class="nav-list">
+            <div class="nav-section-title">Rooms & Dialogues</div>
+            <li class="nav-item active" data-view="chat" data-title="General Lobby Chat Room">🌐 General Lobby <span class="badge">Live</span></li>
+            <li class="nav-item" data-view="chat" data-title="Flirt Corner Chat Room">❤️ Flirt & Dating</li>
+
+            <div class="nav-section-title">Community Boards</div>
+            <li class="nav-item" data-view="forums" data-title="Discussion Forums">📋 Public Forums</li>
+
+            <div class="nav-section-title">Interactive Gaming</div>
+            <li class="nav-item" data-view="games" data-title="Game Lounge">🎮 Online Games</li>
+
+            <div class="nav-section-title">Personal Portal</div>
+            <li class="nav-item" data-view="profile" data-title="My Blog & Profile">📝 My Profile & Blog</li>
+        </ul>
     </div>
 
-    <div class="chat-container">
-        <div class="chat-header">
-            <span>Public Space</span>
-            <span id="statusBadge" style="font-size: 0.8rem; font-weight: normal; background: #dc3545; padding: 4px 8px; border-radius: 12px;">Connecting...</span>
-        </div>
-        
-        <div class="chat-messages" id="chatMessages"></div>
-
-        <div class="chat-input-area">
-            <input type="text" id="chatInput" class="chat-input" placeholder="Type a message..." autocomplete="off">
-            <button id="sendBtn" class="send-btn">Send</button>
+    <!-- Main Functional Window Workspace -->
+    <div class="app-content">
+        <div class="app-header">
+            <span class="app-title" id="currentViewTitle">General Lobby Chat Room</span>
+            <span style="font-size: 0.85rem; color: #23a55a;">● Blueprint Running</span>
         </div>
 
-        <!-- Pop-up Profile Modal -->
-        <div id="profile-modal">
-            <div class="profile-banner"></div>
-            <div class="profile-content">
-                <div class="profile-username" id="modalName">User</div>
-                <div class="profile-status" id="modalStatus">"No status"</div>
-                <button class="close-profile-btn" id="closeProfileBtn">Close</button>
+        <!-- FEATURE MODULE 1: Live Multi-Room Chat Viewport -->
+        <div id="view-chat" class="view-panel active">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message-row">
+                    <div class="message-meta"><span class="user-name" data-user="System_Bot" data-status="Welcome to Spinchat!">System_Bot</span><span class="message-time">10:00 PM</span></div>
+                    <div class="message-text">Welcome! Use the left navigation panel to switch views flawlessly between rooms, blogs, forums, and games.</div>
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <div class="input-wrapper">
+                    <input type="text" id="chatInput" class="chat-input" placeholder="Type a message and hit enter..." autocomplete="off">
+                </div>
             </div>
         </div>
-    </div>
 
-    <script>
-        const chatMessages = document.getElementById('chatMessages');
-        const chatInput = document.getElementById('chatInput');
-        const sendBtn = document.getElementById('sendBtn');
-        const statusBadge = document.getElementById('statusBadge');
-        
-        let myName = "";
-        let myStatus = "";
-        let syncServer;
-        
-        // Dictionary memory map to cache other online users profiles locally
-        let networkUserCache = {};
+        <!-- FEATURE MODULE 2: Forum Board Directory -->
+        <div id="view-forums" class="view-panel">
+            <div class="forum-row">
+                <div class="forum-title">📢 General Platform Rules & Regulations</div>
+                <div class="forum-meta">Started by Admin • 42 Replies • Updated 5 mins ago</div>
+            </div>
+            <div class="forum-row">
+                <div class="forum-title">💻 What technologies are you using for web dev in 2026?</div>
+                <div class="forum-meta">Started by CyberKnight • 118 Replies • Updated 2 hours ago</div>
+            </div>
+        </div>
 
-        // Lock interface until profiles are selected
-        document.getElementById('login-btn').addEventListener('click', () => {
-            const chosenName = document.getElementById('nickname-input').value.trim();
-            const chosenStatus = document.getElementById('status-input').value.trim();
-            
-            if(!chosenName) return alert("Please select a moniker.");
-            
-            myName = chosenName;
-            myStatus = chosenStatus || "Active and chatting!";
-            document.getElementById('auth-overlay').style.display = 'none';
-            
-            connectToSyncNetwork();
-        });
+        <!-- FEATURE MODULE 3: Game Launcher Viewport -->
+        <div id="view-games" class="view-panel">
+            <div class="game-grid">
+                <div class="game-card">
+                    <h3>♟️ Classic Chess</h3>
+                    <p style="font-size:0.85rem; color:#949ba4; margin:5px 0;">Play live chess matches.</p>
+                    <button class="game-btn" onclick="alert('Launching Chess Engine...')">Play Game</button>
+                </div>
+                <div class="game-card">
+                    <h3>🎲 Backgammon</h3>
+                    <p style="font-size:0.85rem; color:#949ba4; margin:5px 0;">Classic tables matchmaking.</p>
+                    <button class="game-btn" onclick="alert('Initializing Board...')">Join Room</button>
+                </div>
+            </div>
+        </div>
 
-        function connectToSyncNetwork() {
-            // Uses a fallback public test broker ecosystem
-            syncServer = new WebSocket('wss://echo.websocket.org');
+        <!-- FEATURE MODULE 4: Personal Profile & Blog Dashboard -->
+        <div id="view-profile" class="view-panel">
+            <div class="profile-container">
+                <div class="profile-card-left">
+                    <div class="profile-avatar"></div>
+                    <h2>My Moniker</h2>
+                    <p style="color:#949ba4; font-size:0.9rem; margin-top:5px;">"Chilling on GitHub Pages"</p>
+                </div>
+                <div class="blog-stream">
+                    <h2>My Personal Blog</h2>
+                    <div class="blog-post">
+                        <h4>🚀 Project Launch Day</h4>
+User
+"Motto status"
+Close Card
 
-            syncServer.onopen = () => {
-                statusBadge.innerText = "Sync Active";
-                statusBadge.style.background = "#28a745";
-            };
-
-            syncServer.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    if (data.sender && data.text) {
-                        // Store their custom status into directory map dynamically
-                        networkUserCache[data.sender] = data.status || "No bio text configured.";
-                        renderMessage(data.sender, data.text, 'received');
-                    }
-                } catch (e) {}
-            };
-        }
-
-        function renderMessage(user, text, type) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${type}`;
-            
-            // If it's a message received from someone else, make their username a clickable link
-            if(type === 'received') {
-                messageDiv.innerHTML = `<div class="message-user" onclick="inspectProfile('${escapeJsString(user)}')">${escapeHTML(user)}</div>${escapeHTML(text)}`;
-            } else {
-                messageDiv.innerHTML = `<div class="message-user">${escapeHTML(user)}</div>${escapeHTML(text)}`;
-            }
-            
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function sendMessage() {
-            const text = chatInput.value.trim();
-            if (text === '' || !syncServer) return;
-
-            renderMessage("You (" + myName + ")", text, 'sent');
-            
-            if (syncServer.readyState === WebSocket.OPEN) {
-                syncServer.send(JSON.stringify({
-                    sender: myName,
-                    status: myStatus, // Sync profile properties over the network structure
-                    text: text
-                }));
-            }
-            chatInput.value = '';
-        }
-
-        // Profile Popup Panel Inspection Routing
-        window.inspectProfile = function(username) {
-            const userStatus = networkUserCache[username] || "Active user.";
-            document.getElementById('modalName').innerText = username;
-            document.getElementById('modalStatus').innerText = `"${userStatus}"`;
-            document.getElementById('profile-modal').style.display = 'block';
-        };
-
-        document.getElementById('closeProfileBtn').onclick = () => {
-            document.getElementById('profile-modal').style.display = 'none';
-        };
-
-        function escapeHTML(str) {
-            return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
-        }
-        function escapeJsString(str) {
-            return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-        }
-
-        sendBtn.addEventListener('click', sendMessage);
-        chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
-    </script>
-</body>
-</html>
+const chatMessages = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+const currentViewTitle = document.getElementById('currentViewTitle');
+const profileModal = document.getElementById('profile-modal');
+const modalName = document.getElementById('modalName');
+const modalStatus = document.getElementById('modalStatus');
+const closeProfileBtn = document.getElementById('closeProfileBtn');
+// Handles view routing between app modules flawlessly
+document.querySelectorAll('.nav-item').forEach(item => {
+item.addEventListener('click', (e) => {
+const target = e.currentTarget;
+const targetView = target.getAttribute('data-view');
+const headerText = target.getAttribute('data-title');
+document.querySelectorAll('.view-panel').forEach(panel => panel.classList.remove('active'));
+document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+document.getElementById(view-${targetView}).classList.add('active');
+currentViewTitle.innerText = headerText;
+target.classList.add('active');
+});
+});
+// Process message entry locally
+chatInput.addEventListener('keypress', (e) => {
+if (e.key === 'Enter' && chatInput.value.trim() !== '') {
+// CONNECT 4: Attach Your Live Network/WebSocket Message Send Broadcast Stream Here
+const text = chatInput.value.trim();
+const now = new Date();
+const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+const row = document.createElement('div');
+row.className = 'message-row';
+row.innerHTML = <div class="message-meta"> <span class="user-name" onclick="openProfileCard('You', 'Platform Developer')">You</span> <span class="message-time">${timeStr}</span> </div> <div class="message-text">${escapeHTML(text)}</div>;
+chatMessages.appendChild(row);
+chatInput.value = '';
+chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+});
+// Watch username clicks inside chat room viewport
+chatMessages.addEventListener('click', (e) => {
+if (e.target.classList.contains('user-name')) {
+const u = e.target.getAttribute('data-user') || e.target.innerText;
+const s = e.target.getAttribute('data-status') || "Community member.";
+openProfileCard(u, s);
+}
+});
+function openProfileCard(username, status) {
+modalName.innerText = username;
+modalStatus.innerText = "${status}";
+profileModal.style.display = 'block';
+}
+closeProfileBtn.onclick = function() {
+profileModal.style.display = 'none';
+};
+function escapeHTML(str) {
+return str.replace(/[&<>'"]/g, tag => ({ '&': '&', '<': '<', '>': '>', "'": ''', '"': '"' }[tag] || tag));
+}
