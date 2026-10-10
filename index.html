@@ -86,7 +86,7 @@
     <div class="chat-main">
         <div class="chat-header">
             <span class="room-title" id="currentRoomTitle"># General Lobby</span>
-            <span style="font-size: 0.85rem; color: #23a55a;">● Production Network Active</span>
+            <span style="font-size: 0.85rem; color: #23a55a;">● Channel Node Connected</span>
         </div>
         <div class="chat-messages" id="chatMessages"></div>
         <div class="chat-input-area">
@@ -112,7 +112,175 @@
         </div>
     </div>
 
-    <!-- Core App Logic Injection -->
     <script src="app.js"></script>
 </body>
 </html>
+// Native Cross-Tab Sync Architecture
+const channel = new BroadcastChannel('community_chat_channel');
+
+let currentUser = null;
+let currentRoom = "General-Lobby";
+
+// Pre-populated active user profile state
+let activeGlobalProfiles = {
+    'bot1': { nickname: 'CyberKnight', status: 'Looking for a competitive match 🎮' },
+    'bot2': { nickname: 'PixelQueen', status: 'Coding up some new themes!' },
+    'bot3': { nickname: 'RetroVibes', status: 'Spinning records in the Music Lounge 🎵' }
+};
+
+// Historical chat memory lists
+const roomHistories = {
+    "General-Lobby": [
+        { user: "CyberKnight", text: "Welcome to the new chat layout! Feel free to explore the rooms.", time: "09:15 PM" }
+    ],
+    "Gaming-Zone": [
+        { user: "CyberKnight", text: "Anyone playing MMOs tonight?", time: "09:30 PM" }
+    ],
+    "Flirt-Dating": [
+        { user: "PixelQueen", text: "Hey everyone! Where are you all visiting from?", time: "09:12 PM" }
+    ],
+    "Music-Lounge": [
+        { user: "RetroVibes", text: "This ambient playlist is perfect right now.", time: "09:44 PM" }
+    ]
+};
+
+const loginBtn = document.getElementById('login-btn');
+const nickInput = document.getElementById('nickname-input');
+const statusInput = document.getElementById('status-input');
+const authOverlay = document.getElementById('auth-overlay');
+const chatInput = document.getElementById('chatInput');
+const chatMessages = document.getElementById('chatMessages');
+const currentRoomTitle = document.getElementById('currentRoomTitle');
+const userContainer = document.getElementById('userContainer');
+const closeProfileBtn = document.getElementById('closeProfileBtn');
+
+loginBtn.addEventListener('click', () => {
+    const nickname = nickInput.value.trim();
+    const status = statusInput.value.trim() || "Chilling in the lobby!";
+    if(!nickname) return alert("Please select an online name.");
+
+    currentUser = { 
+        uid: 'user_' + Math.random().toString(36).substr(2, 9), 
+        nickname, 
+        status 
+    };
+
+    // Save profile locally and transition panels instantly
+    activeGlobalProfiles[currentUser.uid] = { nickname: currentUser.nickname, status: currentUser.status };
+    authOverlay.style.display = 'none';
+    
+    // Announce connection network presence to other open web sessions
+    channel.postMessage({ type: 'sync_profiles', payload: activeGlobalProfiles });
+    
+    rebuildUserDirectory();
+    reloadRoomMessages();
+});
+
+// Intercept cross-tab communication events smoothly
+channel.onmessage = (event) => {
+    const { type, payload, room } = event.data;
+    
+    if (type === 'message' && room === currentRoom) {
+        roomHistories[room].push(payload);
+        renderSingleMessage(payload);
+    } else if (type === 'sync_profiles') {
+        activeGlobalProfiles = { ...activeGlobalProfiles, ...payload };
+        rebuildUserDirectory();
+    }
+};
+
+function renderSingleMessage(msg) {
+    const row = document.createElement('div');
+    row.className = 'message-row';
+    
+    const meta = document.createElement('div');
+    meta.className = 'message-meta';
+    
+    const uName = document.createElement('span');
+    uName.className = 'user-name';
+    uName.innerText = msg.user;
+    uName.onclick = () => showProfileByUsername(msg.user);
+    
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'message-time';
+    timeSpan.innerText = msg.time;
+    
+    const textDiv = document.createElement('div');
+    textDiv.className = 'message-text';
+    textDiv.innerText = msg.text;
+    
+    meta.appendChild(uName);
+    meta.appendChild(timeSpan);
+    row.appendChild(meta);
+    row.appendChild(textDiv);
+    chatMessages.appendChild(row);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function reloadRoomMessages() {
+    chatMessages.innerHTML = '';
+    const history = roomHistories[currentRoom] || [];
+    history.forEach(msg => renderSingleMessage(msg));
+}
+
+function rebuildUserDirectory() {
+    userContainer.innerHTML = '';
+    Object.keys(activeGlobalProfiles).forEach(uid => {
+        const pData = activeGlobalProfiles[uid];
+        const li = document.createElement('li');
+        li.className = 'user-item';
+        li.innerHTML = `<span class="status-dot"></span> ${pData.nickname}`;
+        li.onclick = () => showProfile(uid);
+        userContainer.appendChild(li);
+    });
+}
+
+chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && chatInput.value.trim() !== '') {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        const messagePayload = {
+            user: currentUser.nickname,
+            text: chatInput.value.trim(),
+            time: timeStr
+        };
+
+        // Cache message entry locally
+        roomHistories[currentRoom].push(messagePayload);
+        renderSingleMessage(messagePayload);
+
+        // Broadcast directly to other open windows
+        channel.postMessage({ type: 'message', room: currentRoom, payload: messagePayload });
+        chatInput.value = '';
+    }
+});
+
+document.getElementById('roomContainer').addEventListener('click', (e) => {
+    const target = e.target.closest('.room-item');
+    if(!target || target.dataset.room === currentRoom) return;
+
+    document.querySelectorAll('.room-item').forEach(i => i.classList.remove('active'));
+    target.classList.add('active');
+
+    currentRoom = target.dataset.room;
+    currentRoomTitle.innerText = `# ${target.innerText}`;
+    reloadRoomMessages();
+});
+
+function showProfile(uid) {
+    const profile = activeGlobalProfiles[uid];
+    if(!profile) return;
+    document.getElementById('modalName').innerText = profile.nickname;
+    document.getElementById('modalStatus').innerText = `"${profile.status}"`;
+    document.getElementById('profile-modal').style.display = 'block';
+}
+
+function showProfileByUsername(username) {
+    const matchedUid = Object.keys(activeGlobalProfiles).find(uid => activeGlobalProfiles[uid].nickname === username);
+    if(matchedUid) showProfile(matchedUid);
+}
+
+closeProfileBtn.onclick = function() {
+    document.getElementById('profile-modal').style.display = 'none';
+};
