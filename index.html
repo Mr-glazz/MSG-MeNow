@@ -3,319 +3,324 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SpinChat Clone - Profile & Chat Room</title>
+    <title>Multi-Room Community Chat</title>
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+
         body {
-            background-color: #1a1a1a;
-            color: #f0f0f0;
+            background-color: #1e1f22;
+            color: #dbdee1;
             display: flex;
-            flex-direction: column;
             height: 100vh;
-        }
-        /* Top Navigation Bar */
-        header {
-            background: #2c2c2c;
-            border-bottom: 2px solid #e50914;
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #e50914;
-        }
-        nav button {
-            background: #444;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            cursor: pointer;
-            border-radius: 4px;
-            margin-left: 5px;
-        }
-        nav button.active, nav button:hover {
-            background: #e50914;
-        }
-        /* Main Container Layout */
-        .main-container {
-            display: flex;
-            flex: 1;
             overflow: hidden;
         }
-        /* Views (Profile / Chat Room) */
-        .view {
-            display: none;
-            width: 100%;
-            height: 100%;
-            padding: 20px;
+
+        /* Sidebar for Chat Rooms */
+        .sidebar-rooms {
+            width: 240px;
+            background-color: #2b2d31;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #1f2023;
+        }
+
+        .sidebar-header {
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            background-color: #232428;
+            color: #fff;
+            border-bottom: 1px solid #1f2023;
+        }
+
+        .room-list {
+            flex: 1;
+            padding: 10px;
+            list-style: none;
             overflow-y: auto;
         }
-        .view.active {
-            display: flex;
+
+        .room-item {
+            padding: 10px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 4px;
+            color: #949ba4;
+            font-weight: 500;
+            transition: background 0.2s, color 0.2s;
         }
-        /* Profile Page Styles */
-        .profile-card {
-            background: #252525;
-            border-radius: 8px;
-            padding: 20px;
-            max-width: 600px;
-            margin: auto;
-            width: 100%;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+
+        .room-item:hover {
+            background-color: #35373c;
+            color: #dbdee1;
         }
-        .profile-header {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            border-bottom: 1px solid #444;
-            padding-bottom: 15px;
-            margin-bottom: 15px;
-        }
-        .avatar-box {
-            width: 90px;
-            height: 90px;
-            background: #444;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            color: #aaa;
-        }
-        .profile-info h2 {
+
+        .room-item.active {
+            background-color: #404249;
             color: #fff;
-            margin-bottom: 5px;
         }
-        .profile-info p {
-            color: #aaa;
-            font-size: 14px;
-        }
-        .profile-section h3 {
-            margin-bottom: 8px;
-            color: #e50914;
-            font-size: 16px;
-        }
-        .profile-section textarea, .profile-section input {
-            width: 100%;
-            padding: 8px;
-            background: #111;
-            border: 1px solid #444;
-            color: white;
-            border-radius: 4px;
-            margin-bottom: 15px;
-        }
-        /* Chat Room Styles */
-        .chat-layout {
-            display: flex;
-            width: 100%;
-            height: 100%;
-            gap: 15px;
-        }
+
+        /* Main Chat Window */
         .chat-main {
-            flex: 3;
+            flex: 1;
             display: flex;
             flex-direction: column;
-            background: #222;
-            border-radius: 6px;
-            overflow: hidden;
-            border: 1px solid #333;
+            background-color: #313338;
         }
+
+        .chat-header {
+            height: 53px;
+            padding: 0 20px;
+            background-color: #313338;
+            border-bottom: 1px solid #1f2023;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .room-title {
+            font-weight: bold;
+            color: #fff;
+            font-size: 1.1rem;
+        }
+
         .chat-messages {
             flex: 1;
-            padding: 15px;
+            padding: 20px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 16px;
         }
-        .message {
-            background: #2d2d2d;
-            padding: 10px;
-            border-radius: 5px;
-            max-width: 80%;
-        }
-        .message .user {
-            font-weight: bold;
-            color: #e50914;
-            font-size: 13px;
-            margin-bottom: 3px;
-        }
-        .chat-input-area {
+
+        .message-row {
             display: flex;
-            padding: 10px;
-            background: #2c2c2c;
-            border-top: 1px solid #333;
+            flex-direction: column;
         }
-        .chat-input-area input {
-            flex: 1;
-            padding: 10px;
-            background: #111;
-            border: 1px solid #444;
-            color: white;
-            border-radius: 4px;
-            outline: none;
+
+        .message-meta {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 4px;
         }
-        .chat-input-area button {
-            background: #e50914;
-            color: white;
-            border: none;
-            padding: 0 20px;
-            margin-left: 10px;
-            border-radius: 4px;
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #00b0f4;
             cursor: pointer;
         }
-        /* Sidebar Member List */
-        .chat-sidebar {
+
+        .user-name:hover {
+            text-decoration: underline;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            color: #949ba4;
+        }
+
+        .message-text {
+            font-size: 0.95rem;
+            color: #dbdee1;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        /* Input Container */
+        .chat-input-area {
+            padding: 0 20px 24px 20px;
+            background-color: #313338;
+        }
+
+        .input-wrapper {
+            background-color: #383a40;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+        }
+
+        .chat-input {
             flex: 1;
-            background: #222;
-            border-radius: 6px;
+            background: none;
+            border: none;
+            outline: none;
+            color: #dbdee1;
+            font-size: 0.95rem;
+        }
+
+        .chat-input::placeholder {
+            color: #80848e;
+        }
+
+        /* User Directory Sidebar */
+        .sidebar-users {
+            width: 200px;
+            background-color: #2b2d31;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid #1f2023;
+        }
+
+        .user-list {
             padding: 15px;
-            border: 1px solid #333;
-            max-width: 250px;
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
-        .chat-sidebar h4 {
-            border-bottom: 1px solid #444;
-            padding-bottom: 8px;
-            margin-bottom: 10px;
-            color: #e50914;
-        }
-        .member-item {
-            padding: 6px 0;
-            font-size: 14px;
-            color: #ccc;
+
+        .user-item {
             display: flex;
             align-items: center;
             gap: 8px;
+            font-size: 0.9rem;
+            color: #949ba4;
         }
+
         .status-dot {
             width: 8px;
             height: 8px;
-            background: #2ecc71;
+            background-color: #23a55a;
             border-radius: 50%;
         }
     </style>
 </head>
 <body>
 
-    <!-- Header Navigation -->
-    <header>
-        <div class="logo">SpinChat Clone</div>
-        <nav>
-            <button onclick="switchView('profile')" id="btn-profile" class="active">My Profile</button>
-            <button onclick="switchView('room')" id="btn-room">Chat Rooms</button>
-        </nav>
-    </header>
+    <!-- Rooms Sidebar -->
+    <div class="sidebar-rooms">
+        <div class="sidebar-header">💬 Chat Rooms</div>
+        <ul class="room-list">
+            <li class="room-item active" onclick="switchRoom('General Lobby')">🌐 General Lobby</li>
+            <li class="room-item" onclick="switchRoom('Gaming Zone')">🎮 Gaming Zone</li>
+            <li class="room-item" onclick="switchRoom('Flirt & Dating')">❤️ Flirt & Dating</li>
+            <li class="room-item" onclick="switchRoom('Music Lounge')">🎵 Music Lounge</li>
+        </ul>
+    </div>
 
-    <div class="main-container">
+    <!-- Main Chat Window -->
+    <div class="chat-main">
+        <div class="chat-header">
+            <span class="room-title" id="currentRoomTitle">Lobby</span>
+            <span style="font-size: 0.85rem; color: #23a55a;">● 1,420 Online</span>
+        </div>
         
-        <!-- PROFILE VIEW -->
-        <div id="profile-view" class="view active">
-            <div class="profile-card">
-                <div class="profile-header">
-                    <div class="avatar-box">👤</div>
-                    <div class="profile-info">
-                        <h2 id="display-username">Mr-glazz</h2>
-                        <p>Status: Online & Ready to Chat</p>
-                    </div>
-                </div>
-                <div class="profile-section">
-                    <h3>Change Username</h3>
-                    <input type="text" id="username-input" value="Mr-glazz">
-                </div>
-                <div class="profile-section">
-                    <h3>About Me / Bio</h3>
-                    <textarea rows="3">Welcome to my profile page! Coding up custom chat rooms on GitHub.</textarea>
-                </div>
-                <button onclick="saveProfile()" style="background:#e50914; color:white; border:none; padding:10px 20px; border-radius:4px; cursor:pointer;">Save Profile</button>
-            </div>
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages render here dynamically -->
         </div>
 
-        <!-- CHAT ROOM VIEW -->
-        <div id="room-view" class="view">
-            <div class="chat-layout">
-                <!-- Main Chat Window -->
-                <div class="chat-main">
-                    <div class="chat-messages" id="chat-box">
-                        <div class="message">
-                            <div class="user">System Bot</div>
-                            <div class="text">Welcome to the general lobby chat room! Say hello to everyone.</div>
-                        </div>
-                    </div>
-                    <div class="chat-input-area">
-                        <input type="text" id="message-input" placeholder="Type your message here..." onkeypress="checkEnter(event)">
-                        <button onclick="sendMessage()">Send</button>
-                    </div>
-                </div>
-                <!-- Online Members Sidebar -->
-                <div class="chat-sidebar">
-                    <h4>Online Users</h4>
-                    <div class="member-item"><span class="status-dot"></span> Mr-glazz (You)</div>
-                    <div class="member-item"><span class="status-dot"></span> ChatVisitor99</div>
-                    <div class="member-item"><span class="status-dot"></span> CyberCoder</div>
-                    <div class="member-item"><span class="status-dot"></span> WebMaster_X</div>
-                </div>
+        <div class="chat-input-area">
+            <div class="input-wrapper">
+                <input type="text" id="chatInput" class="chat-input" placeholder="Message this room..." autocomplete="off">
             </div>
         </div>
+    </div>
 
+    <!-- Active Users Sidebar -->
+    <div class="sidebar-users">
+        <div class="sidebar-header">Online Users</div>
+        <ul class="user-list">
+            <li class="user-item"><span class="status-dot"></span> Admin_Spin</li>
+            <li class="user-item"><span class="status-dot"></span> CyberKnight</li>
+            <li class="user-item"><span class="status-dot"></span> PixelQueen</li>
+            <li class="user-item"><span class="status-dot"></span> RetroGamer</li>
+        </ul>
     </div>
 
     <script>
-        // Simple View Switcher
-        function switchView(viewName) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const currentRoomTitle = document.getElementById('currentRoomTitle');
 
-            if (viewName === 'profile') {
-                document.getElementById('profile-view').classList.add('active');
-                document.getElementById('btn-profile').classList.add('active');
-            } else {
-                document.getElementById('room-view').classList.add('active');
-                document.getElementById('btn-room').classList.add('active');
-            }
+        // Dynamic multi-room state tracking
+        let currentRoom = "General Lobby";
+        const roomData = {
+            "General Lobby": [
+                { user: "Admin_Spin", text: "Welcome to the Spin Platform! Feel free to switch channels.", time: "9:30 PM" }
+            ],
+            "Gaming Zone": [
+                { user: "CyberKnight", text: "Anyone down for an MMO raid later tonight?", time: "9:32 PM" }
+            ],
+            "Flirt & Dating": [
+                { user: "PixelQueen", text: "Hey! Let's get to know each other. Where is everyone from?", time: "9:28 PM" }
+            ],
+            "Music Lounge": [
+                { user: "RetroGamer", text: "Currently listening to synthwave vibes. What's your playlist look like?", time: "9:35 PM" }
+            ]
+        };
+
+        function renderMessages() {
+            chatMessages.innerHTML = '';
+            const messages = roomData[currentRoom] || [];
+            messages.forEach(msg => {
+                const row = document.createElement('div');
+                row.className = 'message-row';
+                row.innerHTML = `
+                    <div class="message-meta">
+                        <span class="user-name">${msg.user}</span>
+                        <span class="message-time">${msg.time}</span>
+                    </div>
+                    <div class="message-text">${escapeHTML(msg.text)}</div>
+                `;
+                chatMessages.appendChild(row);
+            });
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        // Save Profile Functionality
-        function saveProfile() {
-            const newName = document.getElementById('username-input').value;
-            document.getElementById('display-username').innerText = newName;
-            alert('Profile saved successfully!');
-        }
-
-        // Chat Message Functionality
-        function sendMessage() {
-            const input = document.getElementById('message-input');
-            const chatBox = document.getElementById('chat-box');
-            const currentName = document.getElementById('display-username').innerText;
-
-            if (input.value.trim() === '') return;
-
-            // Create message element
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'message';
-            msgDiv.innerHTML = `<div class="user">${currentName}</div><div class="text">${escapeHtml(input.value)}</div>`;
+        function switchRoom(roomName) {
+            currentRoom = roomName;
+            currentRoomTitle.innerText = `# ${roomName}`;
             
-            chatBox.appendChild(msgDiv);
-            input.value = '';
-            chatBox.scrollTop = chatBox.scrollHeight; // Auto scroll to bottom
+            // Adjust active CSS states
+            document.querySelectorAll('.room-item').forEach(item => {
+                if(item.innerText.includes(roomName)) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+            
+            renderMessages();
         }
 
-        function checkEnter(event) {
-            if (event.key === 'Enter') {
-                sendMessage();
-            }
+        function sendMessage() {
+            const text = chatInput.value.trim();
+            if (text === '') return;
+
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            // Push to memory array
+            roomData[currentRoom].push({
+                user: "You",
+                text: text,
+                time: timeStr
+            });
+
+            chatInput.value = '';
+            renderMessages();
         }
 
-        function escapeHtml(text) {
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
         }
+
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Initial launch configuration
+        switchRoom('General Lobby');
     </script>
 </body>
 </html>
