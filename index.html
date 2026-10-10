@@ -3,284 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Functional Community Platform</title>
+    <title>Public Chat Room</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #1e1f22; color: #dbdee1; display: flex; height: 100vh; overflow: hidden; }
-        
-        /* Auth Screen overlay */
-        #auth-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:#111214; display:flex; justify-content:center; align-items:center; z-index:100; }
-        .auth-card { background:#313338; padding:30px; border-radius:8px; width:100%; max-width:400px; text-align:center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        .auth-card h2 { margin-bottom: 20px; color:#fff; }
-        .auth-input { width:100%; padding:12px; margin-bottom:15px; border-radius:4px; border:1px solid #1e1f22; background:#383a40; color:#fff; font-size:1rem; outline:none; }
-        .auth-btn { width:100%; padding:12px; background:#5865f2; border:none; color:#fff; font-weight:bold; border-radius:4px; cursor:pointer; font-size:1rem; }
-        .auth-btn:hover { background:#4752c4; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-        /* Navigation Sidebar */
-        .sidebar-rooms { width: 240px; background-color: #2b2d31; display: flex; flex-direction: column; border-right: 1px solid #1f2023; }
-        .sidebar-header { padding: 15px; font-size: 1.1rem; font-weight: bold; background-color: #232428; color: #fff; border-bottom: 1px solid #1f2023; }
-        .room-list { flex: 1; padding: 10px; list-style: none; overflow-y: auto; }
-        .room-item { padding: 10px 12px; border-radius: 6px; cursor: pointer; margin-bottom: 4px; color: #949ba4; font-weight: 500; }
-        .room-item:hover { background-color: #35373c; color: #dbdee1; }
-        .room-item.active { background-color: #404249; color: #fff; }
+        body {
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
 
-        /* Main Chat Window */
-        .chat-main { flex: 1; display: flex; flex-direction: column; background-color: #313338; }
-        .chat-header { height: 53px; padding: 0 20px; background-color: #313338; border-bottom: 1px solid #1f2023; display: flex; align-items: center; justify-content: space-between; }
-        .room-title { font-weight: bold; color: #fff; font-size: 1.1rem; }
-        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
-        
-        .message-row { display: flex; flex-direction: column; }
-        .message-meta { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
-        .user-name { font-weight: 600; font-size: 0.95rem; color: #00b0f4; cursor: pointer; }
-        .user-name:hover { text-decoration: underline; }
-        .message-time { font-size: 0.75rem; color: #949ba4; }
-        .message-text { font-size: 0.95rem; color: #dbdee1; line-height: 1.4; word-break: break-word; }
+        .chat-container {
+            width: 100%;
+            max-width: 600px;
+            height: 80vh;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
 
-        /* Input area */
-        .chat-input-area { padding: 0 20px 24px 20px; background-color: #313338; }
-        .input-wrapper { background-color: #383a40; border-radius: 8px; display: flex; align-items: center; padding: 12px 15px; }
-        .chat-input { flex: 1; background: none; border: none; outline: none; color: #dbdee1; font-size: 0.95rem; }
+        .chat-header {
+            background: #0084ff;
+            color: white;
+            padding: 15px 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-        /* Online Users Sidebar */
-        .sidebar-users { width: 220px; background-color: #2b2d31; display: flex; flex-direction: column; border-left: 1px solid #1f2023; }
-        .user-list { padding: 15px; list-style: none; display: flex; flex-direction: column; gap: 8px; }
-        .user-item { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: #949ba4; cursor: pointer; padding: 4px; border-radius:4px; }
-        .user-item:hover { background: #35373c; color: #fff; }
-        .status-dot { width: 8px; height: 8px; background-color: #23a55a; border-radius: 50%; }
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
 
-        /* Profile Modal Card */
-        #profile-modal { display:none; position: fixed; top:50%; left:50%; transform: translate(-50%, -50%); background:#2b2d31; border: 1px solid #1f2023; border-radius:12px; width:320px; box-shadow:0 4px 20px rgba(0,0,0,0.5); z-index:200; overflow:hidden; }
-        .profile-banner { height: 60px; background: #0084ff; }
-        .profile-content { padding: 20px; position:relative; text-align:center;}
-        .profile-username { font-size:1.4rem; font-weight:bold; color:#fff; margin-top:10px; }
-        .profile-status { font-size:0.9rem; color:#949ba4; margin: 10px 0 20px 0; font-style: italic; }
-        .close-profile-btn { padding:8px 16px; background:#4e5058; color:#fff; border:none; border-radius:4px; cursor:pointer; width:100%; }
-        .close-profile-btn:hover { background:#6d6f78; }
+        .message {
+            max-width: 75%;
+            padding: 10px 14px;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .message.received {
+            background: #e4e6eb;
+            color: #050505;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message.sent {
+            background: #0084ff;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-user {
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-bottom: 4px;
+            color: #65676b;
+        }
+
+        .message.sent .message-user {
+            color: #e0f0ff;
+            text-align: right;
+        }
+
+        .chat-input-area {
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #e4e6eb;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #ccd0d5;
+            border-radius: 24px;
+            outline: none;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+
+        .chat-input:focus {
+            border-color: #0084ff;
+        }
+
+        .send-btn {
+            background: #0084ff;
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .send-btn:hover {
+            background: #006bc6;
+        }
     </style>
 </head>
 <body>
 
-    <!-- Authentication Display Layer -->
-    <div id="auth-overlay">
-        <div class="auth-card">
-            <h2>Welcome to Spin Platform</h2>
-            <input type="text" id="nickname-input" class="auth-input" placeholder="Choose a nickname..." maxlength="15">
-            <input type="text" id="status-input" class="auth-input" placeholder="Set your custom profile status..." maxlength="40">
-            <button id="login-btn" class="auth-btn">Enter Chat Community</button>
-        </div>
-    </div>
-
-    <!-- Active Channel Panel -->
-    <div class="sidebar-rooms">
-        <div class="sidebar-header">💬 Chat Channels</div>
-        <ul class="room-list" id="roomContainer">
-            <li class="room-item active" data-room="General-Lobby">🌐 General Lobby</li>
-            <li class="room-item" data-room="Gaming-Zone">🎮 Gaming Zone</li>
-            <li class="room-item" data-room="Flirt-Dating">❤️ Flirt & Dating</li>
-            <li class="room-item" data-room="Music-Lounge">🎵 Music Lounge</li>
-        </ul>
-    </div>
-
-    <!-- Live Messaging Window -->
-    <div class="chat-main">
+    <div class="chat-container">
         <div class="chat-header">
-            <span class="room-title" id="currentRoomTitle"># General Lobby</span>
-            <span style="font-size: 0.85rem; color: #23a55a;">● Channel Node Connected</span>
+            <span>Public Chat Room</span>
+            <span style="font-size: 0.8rem; font-weight: normal; background: #28a745; padding: 4px 8px; border-radius: 12px;">Live Simulation</span>
         </div>
-        <div class="chat-messages" id="chatMessages"></div>
-        <div class="chat-input-area">
-            <div class="input-wrapper">
-                <input type="text" id="chatInput" class="chat-input" placeholder="Type a message and hit enter..." autocomplete="off">
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="message received">
+                <div class="message-user">Alex</div>
+                Welcome to the public chat space! Type a message below to try it out.
             </div>
         </div>
-    </div>
 
-    <!-- Community Directory -->
-    <div class="sidebar-users">
-        <div class="sidebar-header">Online Users</div>
-        <ul class="user-list" id="userContainer"></ul>
-    </div>
-
-    <!-- Global Profile Inspection Panel -->
-    <div id="profile-modal">
-        <div class="profile-banner"></div>
-        <div class="profile-content">
-            <div class="profile-username" id="modalName">User</div>
-            <div class="profile-status" id="modalStatus">No custom status provided.</div>
-            <button class="close-profile-btn" id="closeProfileBtn">Close Profile</button>
+        <div class="chat-input-area">
+            <input type="text" id="chatInput" class="chat-input" placeholder="Type a message..." autocomplete="off">
+            <button id="sendBtn" class="send-btn">Send</button>
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+
+        const botReplies = [
+            "Hey there! Welcome to the chat.",
+            "That's awesome! Anyone else online right now?",
+            "I'm building a project just like this one.",
+            "Make sure to connect this code to a backend database to make it truly public!",
+            "Looks clean! Let me know if you need help adding Firebase or WebSockets."
+        ];
+
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function sendMessage() {
+            const text = chatInput.value.trim();
+            if (text === '') return;
+
+            // Create sent message HTML
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message sent';
+            messageDiv.innerHTML = `<div class="message-user">You</div>${escapeHTML(text)}`;
+            chatMessages.appendChild(messageDiv);
+            
+            chatInput.value = '';
+            scrollToBottom();
+
+            // Simulate a reply after 1.5 seconds
+            setTimeout(() => {
+                simulateReply();
+            }, 1500);
+        }
+
+        function simulateReply() {
+            const randomReply = botReplies[Math.floor(Math.random() * botReplies.length)];
+            const randomUsers = ['Sam', 'Jordan', 'Taylor', 'Casey'];
+            const randomUser = randomUsers[Math.floor(Math.random() * randomUsers.length)];
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message received';
+            messageDiv.innerHTML = `<div class="message-user">${randomUser}</div>${randomReply}`;
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Initial scroll configuration
+        scrollToBottom();
+    </script>
 </body>
 </html>
-// Native Cross-Tab Sync Architecture
-const channel = new BroadcastChannel('community_chat_channel');
-
-let currentUser = null;
-let currentRoom = "General-Lobby";
-
-// Pre-populated active user profile state
-let activeGlobalProfiles = {
-    'bot1': { nickname: 'CyberKnight', status: 'Looking for a competitive match 🎮' },
-    'bot2': { nickname: 'PixelQueen', status: 'Coding up some new themes!' },
-    'bot3': { nickname: 'RetroVibes', status: 'Spinning records in the Music Lounge 🎵' }
-};
-
-// Historical chat memory lists
-const roomHistories = {
-    "General-Lobby": [
-        { user: "CyberKnight", text: "Welcome to the new chat layout! Feel free to explore the rooms.", time: "09:15 PM" }
-    ],
-    "Gaming-Zone": [
-        { user: "CyberKnight", text: "Anyone playing MMOs tonight?", time: "09:30 PM" }
-    ],
-    "Flirt-Dating": [
-        { user: "PixelQueen", text: "Hey everyone! Where are you all visiting from?", time: "09:12 PM" }
-    ],
-    "Music-Lounge": [
-        { user: "RetroVibes", text: "This ambient playlist is perfect right now.", time: "09:44 PM" }
-    ]
-};
-
-const loginBtn = document.getElementById('login-btn');
-const nickInput = document.getElementById('nickname-input');
-const statusInput = document.getElementById('status-input');
-const authOverlay = document.getElementById('auth-overlay');
-const chatInput = document.getElementById('chatInput');
-const chatMessages = document.getElementById('chatMessages');
-const currentRoomTitle = document.getElementById('currentRoomTitle');
-const userContainer = document.getElementById('userContainer');
-const closeProfileBtn = document.getElementById('closeProfileBtn');
-
-loginBtn.addEventListener('click', () => {
-    const nickname = nickInput.value.trim();
-    const status = statusInput.value.trim() || "Chilling in the lobby!";
-    if(!nickname) return alert("Please select an online name.");
-
-    currentUser = { 
-        uid: 'user_' + Math.random().toString(36).substr(2, 9), 
-        nickname, 
-        status 
-    };
-
-    // Save profile locally and transition panels instantly
-    activeGlobalProfiles[currentUser.uid] = { nickname: currentUser.nickname, status: currentUser.status };
-    authOverlay.style.display = 'none';
-    
-    // Announce connection network presence to other open web sessions
-    channel.postMessage({ type: 'sync_profiles', payload: activeGlobalProfiles });
-    
-    rebuildUserDirectory();
-    reloadRoomMessages();
-});
-
-// Intercept cross-tab communication events smoothly
-channel.onmessage = (event) => {
-    const { type, payload, room } = event.data;
-    
-    if (type === 'message' && room === currentRoom) {
-        roomHistories[room].push(payload);
-        renderSingleMessage(payload);
-    } else if (type === 'sync_profiles') {
-        activeGlobalProfiles = { ...activeGlobalProfiles, ...payload };
-        rebuildUserDirectory();
-    }
-};
-
-function renderSingleMessage(msg) {
-    const row = document.createElement('div');
-    row.className = 'message-row';
-    
-    const meta = document.createElement('div');
-    meta.className = 'message-meta';
-    
-    const uName = document.createElement('span');
-    uName.className = 'user-name';
-    uName.innerText = msg.user;
-    uName.onclick = () => showProfileByUsername(msg.user);
-    
-    const timeSpan = document.createElement('span');
-    timeSpan.className = 'message-time';
-    timeSpan.innerText = msg.time;
-    
-    const textDiv = document.createElement('div');
-    textDiv.className = 'message-text';
-    textDiv.innerText = msg.text;
-    
-    meta.appendChild(uName);
-    meta.appendChild(timeSpan);
-    row.appendChild(meta);
-    row.appendChild(textDiv);
-    chatMessages.appendChild(row);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-function reloadRoomMessages() {
-    chatMessages.innerHTML = '';
-    const history = roomHistories[currentRoom] || [];
-    history.forEach(msg => renderSingleMessage(msg));
-}
-
-function rebuildUserDirectory() {
-    userContainer.innerHTML = '';
-    Object.keys(activeGlobalProfiles).forEach(uid => {
-        const pData = activeGlobalProfiles[uid];
-        const li = document.createElement('li');
-        li.className = 'user-item';
-        li.innerHTML = `<span class="status-dot"></span> ${pData.nickname}`;
-        li.onclick = () => showProfile(uid);
-        userContainer.appendChild(li);
-    });
-}
-
-chatInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter' && chatInput.value.trim() !== '') {
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        
-        const messagePayload = {
-            user: currentUser.nickname,
-            text: chatInput.value.trim(),
-            time: timeStr
-        };
-
-        // Cache message entry locally
-        roomHistories[currentRoom].push(messagePayload);
-        renderSingleMessage(messagePayload);
-
-        // Broadcast directly to other open windows
-        channel.postMessage({ type: 'message', room: currentRoom, payload: messagePayload });
-        chatInput.value = '';
-    }
-});
-
-document.getElementById('roomContainer').addEventListener('click', (e) => {
-    const target = e.target.closest('.room-item');
-    if(!target || target.dataset.room === currentRoom) return;
-
-    document.querySelectorAll('.room-item').forEach(i => i.classList.remove('active'));
-    target.classList.add('active');
-
-    currentRoom = target.dataset.room;
-    currentRoomTitle.innerText = `# ${target.innerText}`;
-    reloadRoomMessages();
-});
-
-function showProfile(uid) {
-    const profile = activeGlobalProfiles[uid];
-    if(!profile) return;
-    document.getElementById('modalName').innerText = profile.nickname;
-    document.getElementById('modalStatus').innerText = `"${profile.status}"`;
-    document.getElementById('profile-modal').style.display = 'block';
-}
-
-function showProfileByUsername(username) {
-    const matchedUid = Object.keys(activeGlobalProfiles).find(uid => activeGlobalProfiles[uid].nickname === username);
-    if(matchedUid) showProfile(matchedUid);
-}
-
-closeProfileBtn.onclick = function() {
-    document.getElementById('profile-modal').style.display = 'none';
-};
