@@ -3,148 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Public Chat Room</title>
+    <title>Syncing Chat Room with Profiles</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        
+        /* Auth Screen overlay */
+        #auth-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:#111214; display:flex; justify-content:center; align-items:center; z-index:100; }
+        .auth-card { background:#ffffff; padding:30px; border-radius:12px; width:100%; max-width:400px; text-align:center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .auth-card h2 { margin-bottom: 20px; color:#333; }
+        .auth-input { width:100%; padding:12px; margin-bottom:15px; border-radius:24px; border:1px solid #ccd0d5; font-size:1rem; outline:none; }
+        .auth-btn { width:100%; padding:12px; background:#0084ff; border:none; color:#fff; font-weight:bold; border-radius:24px; cursor:pointer; font-size:1rem; }
+        .auth-btn:hover { background:#006bc6; }
 
-        body {
-            background-color: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
+        .chat-container { width: 100%; max-width: 600px; height: 80vh; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        .chat-header { background: #0084ff; color: white; padding: 15px 20px; font-size: 1.2rem; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; background: #f9f9f9; display: flex; flex-direction: column; gap: 12px; }
+        
+        .message { max-width: 75%; padding: 10px 14px; border-radius: 18px; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; }
+        .message.received { background: #e4e6eb; color: #050505; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .message.sent { background: #0084ff; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+        
+        .message-user { font-size: 0.75rem; font-weight: bold; margin-bottom: 4px; color: #0084ff; cursor: pointer; }
+        .message-user:hover { text-decoration: underline; }
+        .message.sent .message-user { color: #e0f0ff; text-align: right; cursor: default; pointer-events: none; }
 
-        .chat-container {
-            width: 100%;
-            max-width: 600px;
-            height: 80vh;
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+        .chat-input-area { padding: 15px; background: white; border-top: 1px solid #e4e6eb; display: flex; gap: 10px; }
+        .chat-input { flex: 1; padding: 12px 16px; border: 1px solid #ccd0d5; border-radius: 24px; outline: none; font-size: 0.95rem; }
+        .send-btn { background: #0084ff; color: white; border: none; padding: 0 20px; border-radius: 24px; font-weight: bold; cursor: pointer; }
 
-        .chat-header {
-            background: #0084ff;
-            color: white;
-            padding: 15px 20px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .chat-messages {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            background: #f9f9f9;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .message {
-            max-width: 75%;
-            padding: 10px 14px;
-            border-radius: 18px;
-            font-size: 0.95rem;
-            line-height: 1.4;
-            position: relative;
-            word-wrap: break-word;
-        }
-
-        .message.received {
-            background: #e4e6eb;
-            color: #050505;
-            align-self: flex-start;
-            border-bottom-left-radius: 4px;
-        }
-
-        .message.sent {
-            background: #0084ff;
-            color: white;
-            align-self: flex-end;
-            border-bottom-right-radius: 4px;
-        }
-
-        .message-user {
-            font-size: 0.75rem;
-            font-weight: bold;
-            margin-bottom: 4px;
-            color: #65676b;
-        }
-
-        .message.sent .message-user {
-            color: #e0f0ff;
-            text-align: right;
-        }
-
-        .chat-input-area {
-            padding: 15px;
-            background: white;
-            border-top: 1px solid #e4e6eb;
-            display: flex;
-            gap: 10px;
-        }
-
-        .chat-input {
-            flex: 1;
-            padding: 12px 16px;
-            border: 1px solid #ccd0d5;
-            border-radius: 24px;
-            outline: none;
-            font-size: 0.95rem;
-            transition: border-color 0.2s;
-        }
-
-        .chat-input:focus {
-            border-color: #0084ff;
-        }
-
-        .send-btn {
-            background: #0084ff;
-            color: white;
-            border: none;
-            padding: 0 20px;
-            border-radius: 24px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .send-btn:hover {
-            background: #006bc6;
-        }
+        /* Profile Modal Card */
+        #profile-modal { display:none; position: absolute; top:50%; left:50%; transform: translate(-50%, -50%); background:#ffffff; border-radius:12px; width:280px; box-shadow:0 4px 20px rgba(0,0,0,0.2); z-index:50; overflow:hidden; border: 1px solid #e4e6eb; }
+        .profile-banner { height: 50px; background: #0084ff; }
+        .profile-content { padding: 20px; text-align:center; }
+        .profile-username { font-size:1.2rem; font-weight:bold; color:#333; }
+        .profile-status { font-size:0.9rem; color:#65676b; margin: 10px 0 15px 0; font-style: italic; }
+        .close-profile-btn { padding:8px 16px; background:#e4e6eb; color:#050505; border:none; border-radius:18px; cursor:pointer; width:100%; font-weight: bold; }
     </style>
 </head>
 <body>
 
+    <!-- Phase 2 Login Overlay -->
+    <div id="auth-overlay">
+        <div class="auth-card">
+            <h2>Spinchat Profile Set</h2>
+            <input type="text" id="nickname-input" class="auth-input" placeholder="Choose your chat handle..." maxlength="12">
+            <input type="text" id="status-input" class="auth-input" placeholder="Enter your custom motto status..." maxlength="35">
+            <button id="login-btn" class="auth-btn">Enter Chat Room</button>
+        </div>
+    </div>
+
     <div class="chat-container">
         <div class="chat-header">
-            <span>Public Chat Room</span>
-            <span style="font-size: 0.8rem; font-weight: normal; background: #28a745; padding: 4px 8px; border-radius: 12px;">Live Simulation</span>
+            <span>Public Space</span>
+            <span id="statusBadge" style="font-size: 0.8rem; font-weight: normal; background: #dc3545; padding: 4px 8px; border-radius: 12px;">Connecting...</span>
         </div>
         
-        <div class="chat-messages" id="chatMessages">
-            <div class="message received">
-                <div class="message-user">Alex</div>
-                Welcome to the public chat space! Type a message below to try it out.
-            </div>
-        </div>
+        <div class="chat-messages" id="chatMessages"></div>
 
         <div class="chat-input-area">
             <input type="text" id="chatInput" class="chat-input" placeholder="Type a message..." autocomplete="off">
             <button id="sendBtn" class="send-btn">Send</button>
+        </div>
+
+        <!-- Pop-up Profile Modal -->
+        <div id="profile-modal">
+            <div class="profile-banner"></div>
+            <div class="profile-content">
+                <div class="profile-username" id="modalName">User</div>
+                <div class="profile-status" id="modalStatus">"No status"</div>
+                <button class="close-profile-btn" id="closeProfileBtn">Close</button>
+            </div>
         </div>
     </div>
 
@@ -152,65 +81,102 @@
         const chatMessages = document.getElementById('chatMessages');
         const chatInput = document.getElementById('chatInput');
         const sendBtn = document.getElementById('sendBtn');
+        const statusBadge = document.getElementById('statusBadge');
+        
+        let myName = "";
+        let myStatus = "";
+        let syncServer;
+        
+        // Dictionary memory map to cache other online users profiles locally
+        let networkUserCache = {};
 
-        const botReplies = [
-            "Hey there! Welcome to the chat.",
-            "That's awesome! Anyone else online right now?",
-            "I'm building a project just like this one.",
-            "Make sure to connect this code to a backend database to make it truly public!",
-            "Looks clean! Let me know if you need help adding Firebase or WebSockets."
-        ];
+        // Lock interface until profiles are selected
+        document.getElementById('login-btn').addEventListener('click', () => {
+            const chosenName = document.getElementById('nickname-input').value.trim();
+            const chosenStatus = document.getElementById('status-input').value.trim();
+            
+            if(!chosenName) return alert("Please select a moniker.");
+            
+            myName = chosenName;
+            myStatus = chosenStatus || "Active and chatting!";
+            document.getElementById('auth-overlay').style.display = 'none';
+            
+            connectToSyncNetwork();
+        });
 
-        function scrollToBottom() {
+        function connectToSyncNetwork() {
+            // Uses a fallback public test broker ecosystem
+            syncServer = new WebSocket('wss://echo.websocket.org');
+
+            syncServer.onopen = () => {
+                statusBadge.innerText = "Sync Active";
+                statusBadge.style.background = "#28a745";
+            };
+
+            syncServer.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data.sender && data.text) {
+                        // Store their custom status into directory map dynamically
+                        networkUserCache[data.sender] = data.status || "No bio text configured.";
+                        renderMessage(data.sender, data.text, 'received');
+                    }
+                } catch (e) {}
+            };
+        }
+
+        function renderMessage(user, text, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            // If it's a message received from someone else, make their username a clickable link
+            if(type === 'received') {
+                messageDiv.innerHTML = `<div class="message-user" onclick="inspectProfile('${escapeJsString(user)}')">${escapeHTML(user)}</div>${escapeHTML(text)}`;
+            } else {
+                messageDiv.innerHTML = `<div class="message-user">${escapeHTML(user)}</div>${escapeHTML(text)}`;
+            }
+            
+            chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
         function sendMessage() {
             const text = chatInput.value.trim();
-            if (text === '') return;
+            if (text === '' || !syncServer) return;
 
-            // Create sent message HTML
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message sent';
-            messageDiv.innerHTML = `<div class="message-user">You</div>${escapeHTML(text)}`;
-            chatMessages.appendChild(messageDiv);
+            renderMessage("You (" + myName + ")", text, 'sent');
             
+            if (syncServer.readyState === WebSocket.OPEN) {
+                syncServer.send(JSON.stringify({
+                    sender: myName,
+                    status: myStatus, // Sync profile properties over the network structure
+                    text: text
+                }));
+            }
             chatInput.value = '';
-            scrollToBottom();
-
-            // Simulate a reply after 1.5 seconds
-            setTimeout(() => {
-                simulateReply();
-            }, 1500);
         }
 
-        function simulateReply() {
-            const randomReply = botReplies[Math.floor(Math.random() * botReplies.length)];
-            const randomUsers = ['Sam', 'Jordan', 'Taylor', 'Casey'];
-            const randomUser = randomUsers[Math.floor(Math.random() * randomUsers.length)];
+        // Profile Popup Panel Inspection Routing
+        window.inspectProfile = function(username) {
+            const userStatus = networkUserCache[username] || "Active user.";
+            document.getElementById('modalName').innerText = username;
+            document.getElementById('modalStatus').innerText = `"${userStatus}"`;
+            document.getElementById('profile-modal').style.display = 'block';
+        };
 
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message received';
-            messageDiv.innerHTML = `<div class="message-user">${randomUser}</div>${randomReply}`;
-            chatMessages.appendChild(messageDiv);
-            scrollToBottom();
-        }
+        document.getElementById('closeProfileBtn').onclick = () => {
+            document.getElementById('profile-modal').style.display = 'none';
+        };
 
         function escapeHTML(str) {
-            return str.replace(/[&<>'"]/g, 
-                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-            );
+            return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
+        }
+        function escapeJsString(str) {
+            return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
         }
 
         sendBtn.addEventListener('click', sendMessage);
-        chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-
-        // Initial scroll configuration
-        scrollToBottom();
+        chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
     </script>
 </body>
 </html>
